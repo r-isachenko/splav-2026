@@ -36,14 +36,15 @@ CONFIG = {
     ],
     # Вводный раздел в начале страницы (до навигации по разделам).
     "about": [
-        "Три дня на воде по Мещере: собираемся вечером пятницы, сплавляемся "
-        "до воскресенья. Шестеро, три байдарки, ~43 км спокойной Пры.",
-        "Главная идея — не гнать. В субботу не добиваем до Деулино, а встаём "
-        "после Горок; в воскресенье остаётся короткий доплыв, антистапель и "
-        "выезд домой.",
-        "Ниже — нитка маршрута с картой, тайминги по дням, чек-листы общего "
-        "снаряжения и личных вещей (галочки сохраняются прямо в твоём телефоне) "
-        "и меню на все приёмы пищи.",
+        ("🛶", "Три дня на воде по Мещере: собираемся вечером пятницы, "
+               "сплавляемся до воскресенья. Шестеро, три байдарки, "
+               "~43 км спокойной Пры."),
+        ("🌲", "Главная идея — не гнать. В субботу не добиваем до Деулино, "
+               "а встаём после Горок; в воскресенье — короткий доплыв, "
+               "антистапель и домой."),
+        ("✅", "Ниже — маршрут с картой, тайминги по дням, чек-листы "
+               "снаряжения и вещей (галочки сохраняются прямо в твоём "
+               "телефоне) и меню на все приёмы пищи."),
     ],
 }
 
@@ -310,7 +311,11 @@ def render(route, gear, personal, menu):
         f'<span class="fact-v">{html.escape(v)}</span></div>'
         for k, v in F["facts"]
     )
-    about = "".join(f"<p>{inline(p)}</p>" for p in F["about"])
+    about = "".join(
+        f'<div class="about-item"><span class="about-emoji">{e}</span>'
+        f"<p>{inline(t)}</p></div>"
+        for e, t in F["about"]
+    )
 
     # --- Маршрут ---
     plan_cards = []
@@ -324,14 +329,6 @@ def render(route, gear, personal, menu):
         plan_cards.append(
             f'<div class="card plan-card"><h3>{html.escape(d["day"])}</h3>{rows}</div>'
         )
-
-    pts_rows = "".join(
-        f'<tr><td><span class="dot" style="background:{p["color"]}"></span>{html.escape(p["name"])}</td>'
-        f'<td class="mono"><a href="https://yandex.ru/maps/?pt={p["lon"]},{p["lat"]}&z=15&l=sat" '
-        f'target="_blank" rel="noopener">{p["lat"]}, {p["lon"]}</a></td>'
-        f'<td>{html.escape(p["purpose"])}</td></tr>'
-        for p in route["points"]
-    )
 
     links = "".join(
         f'<li><a href="{u}" target="_blank" rel="noopener">{html.escape(t)}</a></li>'
@@ -369,6 +366,8 @@ def render(route, gear, personal, menu):
         for i, s in enumerate(gear["sections"])
     )
     gear_intro = "".join(f"<p>{inline(p)}</p>" for p in gear["intro"])
+    if gear_intro:
+        gear_intro = f'<div class="callout">{gear_intro}</div>'
 
     # --- Личные вещи ---
     pers_cards = "".join(
@@ -377,6 +376,8 @@ def render(route, gear, personal, menu):
         for i, s in enumerate(personal["sections"])
     )
     pers_intro = "".join(f"<p>{inline(p)}</p>" for p in personal["intro"])
+    if pers_intro:
+        pers_intro = f'<div class="callout">{pers_intro}</div>'
 
     # --- Меню ---
     meal_cards = "".join(
@@ -395,6 +396,8 @@ def render(route, gear, personal, menu):
         for r in menu["recipes"]
     )
     menu_intro = "".join(f"<p>{inline(p)}</p>" for p in menu["intro"])
+    if menu_intro:
+        menu_intro = f'<div class="callout">{menu_intro}</div>'
     vvod = ("<ul class='note-list'>"
             + "".join(f"<li>{inline(x)}</li>" for x in menu["vvod"]) + "</ul>") if menu["vvod"] else ""
 
@@ -409,7 +412,6 @@ def render(route, gear, personal, menu):
         facts=facts,
         plan_cards="".join(plan_cards),
         legend="".join(legend),
-        pts_rows=pts_rows,
         links=links,
         timing_cards="".join(timing_cards),
         gear_intro=gear_intro,
@@ -448,53 +450,45 @@ TEMPLATE = """<!DOCTYPE html>
 </section>
 
 <nav class="nav" id="nav">
-  <a href="#marshrut">Маршрут</a>
-  <a href="#timing">Тайминги</a>
-  <a href="#snar">Снаряжение</a>
-  <a href="#veshi">Личные вещи</a>
-  <a href="#menu">Меню</a>
+  <a href="#marshrut"><span class="nav-emoji">🗺️</span>Маршрут</a>
+  <a href="#timing"><span class="nav-emoji">⏱️</span>Тайминги</a>
+  <a href="#snar"><span class="nav-emoji">🎒</span>Снаряжение</a>
+  <a href="#veshi"><span class="nav-emoji">👕</span>Вещи</a>
+  <a href="#menu"><span class="nav-emoji">🍲</span>Меню</a>
 </nav>
 
 <main>
   <section id="marshrut">
-    <h2>Нитка маршрута</h2>
-    <p class="muted">Заводская Слобода → Кордон 273 → Горки → Лесохим → Деулино.</p>
+    <h2><span class="h2-emoji">🗺️</span>Нитка маршрута</h2>
+    <p class="lead">Заводская Слобода → Кордон 273 → Горки → Лесохим → Деулино</p>
     <div class="grid">{plan_cards}</div>
 
     <h3 class="sub">Карта опорных точек</h3>
     <div id="map"></div>
     <div class="legend">{legend}</div>
-
-    <details class="table-wrap">
-      <summary>Таблица опорных точек с координатами</summary>
-      <table class="points">
-        <thead><tr><th>Точка</th><th>Координаты</th><th>Зачем</th></tr></thead>
-        <tbody>{pts_rows}</tbody>
-      </table>
-    </details>
   </section>
 
   <section id="timing">
-    <h2>Примерные тайминги</h2>
-    <p class="muted">Черновой план по дням — ориентир, а не расписание поезда.</p>
+    <h2><span class="h2-emoji">⏱️</span>Примерные тайминги</h2>
+    <p class="lead">Черновой план по дням — ориентир, а не расписание поезда.</p>
     <div class="grid">{timing_cards}</div>
   </section>
 
   <section id="snar">
-    <h2>Общее снаряжение</h2>
+    <h2><span class="h2-emoji">🎒</span>Общее снаряжение</h2>
     {gear_intro}
-    <p class="muted">Галочки сохраняются в этом браузере — отмечай, что уже собрано.</p>
+    <p class="lead">Галочки сохраняются в этом браузере — отмечай, что уже собрано.</p>
     <div class="grid">{gear_cards}</div>
   </section>
 
   <section id="veshi">
-    <h2>Личные вещи</h2>
+    <h2><span class="h2-emoji">👕</span>Личные вещи</h2>
     {pers_intro}
     <div class="grid">{pers_cards}</div>
   </section>
 
   <section id="menu">
-    <h2>Меню</h2>
+    <h2><span class="h2-emoji">🍲</span>Меню</h2>
     {menu_intro}
     {vvod}
     <h3 class="sub">По приёмам пищи</h3>
@@ -506,7 +500,7 @@ TEMPLATE = """<!DOCTYPE html>
   </section>
 
   <section id="links">
-    <h2>Лоции и источники</h2>
+    <h2><span class="h2-emoji">📚</span>Лоции и источники</h2>
     <ul class="links">{links}</ul>
   </section>
 </main>
@@ -519,6 +513,7 @@ TEMPLATE = """<!DOCTYPE html>
 <script src="https://api-maps.yandex.ru/2.1/?apikey={yandex_key}&lang=ru_RU"></script>
 <script src="assets/route.js"></script>
 <script src="assets/checklist.js"></script>
+<script src="assets/nav.js"></script>
 </body>
 </html>
 """
@@ -528,7 +523,7 @@ def cache_bust(html_out: str) -> str:
     """Подмешать хэш содержимого в ссылки на ассеты (styles.css?v=...),
     чтобы браузеры не держали старые версии после правок."""
     import hashlib
-    for name in ("styles.css", "route.js", "checklist.js"):
+    for name in ("styles.css", "route.js", "checklist.js", "nav.js"):
         f = BASE / "assets" / name
         if f.exists():
             v = hashlib.md5(f.read_bytes()).hexdigest()[:8]

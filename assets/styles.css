@@ -65,37 +65,70 @@ a { color: var(--accent); }
 .intro-block { max-width: var(--maxw); margin: 18px auto 0; padding: 0 16px; }
 .about {
   background: var(--card); border: 1px solid var(--line);
-  border-left: 4px solid var(--accent); border-radius: var(--radius);
-  padding: 16px 20px; box-shadow: var(--shadow); font-size: 17px;
+  border-radius: var(--radius); padding: 8px 20px;
+  box-shadow: var(--shadow); font-size: 16.5px;
+  display: grid; gap: 2px;
 }
-.about p { margin: 0 0 12px; }
-.about p:last-child { margin-bottom: 0; }
+.about-item { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; }
+.about-item + .about-item { border-top: 1px dashed var(--line); }
+.about-emoji { font-size: 24px; line-height: 1.3; flex: 0 0 auto; }
+.about-item p { margin: 0; }
 
 /* Sticky nav */
 .nav {
   position: sticky; top: 0; z-index: 500;
-  display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch;
-  padding: 10px 12px; margin: 18px 0 8px;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(8px);
-  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  justify-content: safe center;
+  padding: 12px; margin: 22px 0 8px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--accent);
+  scrollbar-width: none;
 }
+.nav::-webkit-scrollbar { display: none; }
 .nav a {
   flex: 0 0 auto; text-decoration: none; color: var(--ink);
-  background: var(--card); border: 1px solid var(--line);
-  padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 14px;
-  white-space: nowrap;
+  background: var(--card); border: 1.5px solid var(--line);
+  padding: 9px 15px; border-radius: 999px; font-weight: 700; font-size: 14px;
+  white-space: nowrap; box-shadow: var(--shadow);
+  transition: background .15s, border-color .15s, color .15s;
 }
-.nav a:active { transform: scale(.97); }
+.nav-emoji { margin-right: 6px; }
+.nav a:active { transform: scale(.96); }
+.nav a.active {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
 
-/* Sections */
-section { padding-top: 26px; }
-h2 {
-  font-size: clamp(22px, 5.5vw, 28px); margin: 6px 0 4px;
-  border-bottom: 3px solid var(--accent); display: inline-block; padding-bottom: 2px;
+/* Sections — заметно отделены друг от друга */
+main section {
+  margin-top: 40px; padding-top: 30px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 66px;  /* якоря не прячутся под липкой навигацией */
 }
-h3.sub { margin: 26px 0 10px; color: var(--accent-2); }
+main section:first-child { margin-top: 6px; border-top: 0; }
+h2 {
+  font-size: clamp(23px, 5.5vw, 29px); margin: 6px 0 4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.h2-emoji {
+  font-size: .85em; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 6px 9px; box-shadow: var(--shadow); line-height: 1;
+}
+.lead { color: var(--muted); font-size: 16.5px; margin: 8px 0 0; }
+h3.sub {
+  margin: 28px 0 10px; color: var(--accent-2);
+  text-transform: uppercase; letter-spacing: .06em; font-size: 14.5px;
+}
 .muted { color: var(--muted); }
+
+/* Callout — вводный текст секций */
+.callout {
+  background: var(--card); border: 1px solid var(--line);
+  border-left: 4px solid var(--accent-2); border-radius: 10px;
+  padding: 12px 16px; margin: 14px 0 4px; color: var(--muted);
+}
+.callout p { margin: 0 0 8px; }
+.callout p:last-child { margin-bottom: 0; }
 
 .grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 14px; }
 @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
@@ -132,17 +165,6 @@ h3.sub { margin: 26px 0 10px; color: var(--accent-2); }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 10px 2px 0; font-size: 13px; color: var(--muted); }
 .leg { display: inline-flex; align-items: center; gap: 6px; }
 .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,.2); }
-
-/* Points table */
-.table-wrap { margin-top: 16px; }
-.table-wrap > summary {
-  cursor: pointer; font-weight: 600; padding: 10px 14px;
-  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
-}
-table.points { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-table.points th, table.points td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-table.points th { color: var(--muted); font-weight: 600; }
-.mono { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .links { padding-left: 18px; }
 .links li { margin: 5px 0; }
@@ -199,7 +221,6 @@ footer {
 html, body { max-width: 100%; overflow-x: hidden; }
 img, table, #map { max-width: 100%; }
 #map img { max-width: none; }  /* тайлы и иконки карты не трогаем */
-.table-wrap { overflow-x: auto; }        /* широкая таблица точек скроллится */
 
 @media (max-width: 560px) {
   body { font-size: 15px; }
@@ -212,7 +233,7 @@ img, table, #map { max-width: 100%; }
   .card { padding: 14px 15px; }
   .pk { flex-basis: 84px; }
   .t-time { flex-basis: 76px; }
-  table.points { font-size: 13px; }
-  .nav { padding: 8px 10px; }
-  .nav a { padding: 7px 12px; }
+  .nav { padding: 9px 10px; }
+  .nav a { padding: 8px 12px; }
+  main section { margin-top: 30px; padding-top: 24px; }
 }
