@@ -524,13 +524,25 @@ TEMPLATE = """<!DOCTYPE html>
 """
 
 
+def cache_bust(html_out: str) -> str:
+    """Подмешать хэш содержимого в ссылки на ассеты (styles.css?v=...),
+    чтобы браузеры не держали старые версии после правок."""
+    import hashlib
+    for name in ("styles.css", "route.js", "checklist.js"):
+        f = BASE / "assets" / name
+        if f.exists():
+            v = hashlib.md5(f.read_bytes()).hexdigest()[:8]
+            html_out = html_out.replace(f"assets/{name}", f"assets/{name}?v={v}")
+    return html_out
+
+
 def main():
     CONFIG["yandex_api_key"] = load_yandex_key()
     route = parse_route(read_note("01"))
     gear = parse_gear(read_note("03"))
     personal = parse_gear(read_note("04"))
     menu = parse_menu(read_note("05"))
-    out = render(route, gear, personal, menu)
+    out = cache_bust(render(route, gear, personal, menu))
     (BASE / "index.html").write_text(out, encoding="utf-8")
     print(f"Готово: {BASE / 'index.html'}")
     print(f"  точек на карте: {len(route['points'])}")
