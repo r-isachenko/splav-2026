@@ -345,7 +345,8 @@ def render(route, gear, personal, menu):
                 f'{html.escape(p["label"])}</span>'
             )
 
-    # --- Тайминги ---
+    # --- Тайминги: дни лентой друг за другом ---
+    DAY_NUM = {"Пятница": "День 1", "Суббота": "День 2", "Воскресенье": "День 3"}
     timing_cards = []
     for d in route["days"]:
         tl = "".join(
@@ -354,8 +355,11 @@ def render(route, gear, personal, menu):
             for t, desc in d["timeline"]
         )
         desc = f'<p class="muted">{inline(d["desc"])}</p>' if d["desc"] else ""
+        num = DAY_NUM.get(d["day"], "")
         timing_cards.append(
-            f'<div class="card"><h3>{html.escape(d["day"])}</h3>{desc}'
+            f'<div class="card day-card">'
+            f'<div class="day-head"><span class="day-num">{num}</span>'
+            f'<h3>{html.escape(d["day"])}</h3></div>{desc}'
             f'<ol class="timeline">{tl}</ol></div>'
         )
 
@@ -379,12 +383,43 @@ def render(route, gear, personal, menu):
     if pers_intro:
         pers_intro = f'<div class="callout">{pers_intro}</div>'
 
-    # --- Меню ---
-    meal_cards = "".join(
-        f'<div class="card"><h3>{html.escape(m["title"])}</h3>'
-        f'<ul class="dish">{"".join(f"<li>{inline(x)}</li>" for x in m["items"])}</ul></div>'
-        for m in menu["meals"]
-    )
+    # --- Меню: приёмы пищи сгруппированы по дням ---
+    def meal_card(title, items):
+        return (
+            f'<div class="card"><h4>{html.escape(title)}</h4>'
+            f'<ul class="dish">{"".join(f"<li>{inline(x)}</li>" for x in items)}</ul></div>'
+        )
+
+    day_order = ["Пятница", "Суббота", "Воскресенье"]
+    day_groups = {d: [] for d in day_order}
+    extra_meals = []
+    for m in menu["meals"]:
+        day = next((d for d in day_order if m["title"].startswith(d)), None)
+        if day:
+            rest = m["title"][len(day):].lstrip(" ,")
+            rest = (rest[:1].upper() + rest[1:]) if rest else m["title"]
+            day_groups[day].append((rest, m["items"]))
+        else:
+            extra_meals.append((m["title"], m["items"]))
+
+    meal_blocks = []
+    for day in day_order:
+        if not day_groups[day]:
+            continue
+        cards = "".join(meal_card(t, it) for t, it in day_groups[day])
+        meal_blocks.append(
+            f'<div class="day-block">'
+            f'<div class="day-head"><span class="day-num">{DAY_NUM[day]}</span>'
+            f'<h3>{day}</h3></div><div class="grid">{cards}</div></div>'
+        )
+    if extra_meals:
+        cards = "".join(meal_card(t, it) for t, it in extra_meals)
+        meal_blocks.append(
+            f'<div class="day-block">'
+            f'<div class="day-head"><span class="day-num">🆘</span>'
+            f'<h3>На всякий случай</h3></div><div class="grid">{cards}</div></div>'
+        )
+    meal_cards = "".join(meal_blocks)
     shop_cards = "".join(
         f'<div class="card"><h4>{html.escape(s["title"])}</h4>'
         f'{checklist_html(s["items"], "shop-" + str(i))}</div>'
@@ -471,7 +506,7 @@ TEMPLATE = """<!DOCTYPE html>
   <section id="timing">
     <h2><span class="h2-emoji">⏱️</span>Примерные тайминги</h2>
     <p class="lead">Черновой план по дням — ориентир, а не расписание поезда.</p>
-    <div class="grid">{timing_cards}</div>
+    <div class="days">{timing_cards}</div>
   </section>
 
   <section id="snar">
@@ -491,8 +526,8 @@ TEMPLATE = """<!DOCTYPE html>
     <h2><span class="h2-emoji">🍲</span>Меню</h2>
     {menu_intro}
     {vvod}
-    <h3 class="sub">По приёмам пищи</h3>
-    <div class="grid">{meal_cards}</div>
+    <h3 class="sub">По дням</h3>
+    <div class="days">{meal_cards}</div>
     <h3 class="sub">Закупка</h3>
     <div class="grid">{shop_cards}</div>
     <h3 class="sub">Рецепты</h3>
