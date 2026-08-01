@@ -61,6 +61,16 @@ a { color: var(--accent); }
 .fact-v { font-weight: 700; }
 .hero-intro { color: var(--muted); max-width: 620px; margin: 14px auto 0; }
 
+/* Intro / О сплаве */
+.intro-block { max-width: var(--maxw); margin: 18px auto 0; padding: 0 16px; }
+.about {
+  background: var(--card); border: 1px solid var(--line);
+  border-left: 4px solid var(--accent); border-radius: var(--radius);
+  padding: 16px 20px; box-shadow: var(--shadow); font-size: 17px;
+}
+.about p { margin: 0 0 12px; }
+.about p:last-child { margin-bottom: 0; }
+
 /* Sticky nav */
 .nav {
   position: sticky; top: 0; z-index: 500;
@@ -114,7 +124,13 @@ h3.sub { margin: 26px 0 10px; color: var(--accent-2); }
 .t-desc { flex: 1; }
 
 /* Map */
-#map { height: 380px; border-radius: var(--radius); margin-top: 14px; box-shadow: var(--shadow); z-index: 1; }
+#map { height: 380px; border-radius: var(--radius); margin-top: 14px; box-shadow: var(--shadow); overflow: hidden; }
+#map.map-fallback {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: 20px; background: var(--card); border: 1px solid var(--line); color: var(--muted);
+}
+/* Яндекс.Карты внутри контейнера должны занимать всю площадь */
+#map ymaps, #map .ymaps-2-1-79-map { width: 100% !important; height: 100% !important; }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 10px 2px 0; font-size: 13px; color: var(--muted); }
 .leg { display: inline-flex; align-items: center; gap: 6px; }
 .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,.2); }
@@ -179,4 +195,25 @@ footer {
   max-width: var(--maxw); margin: 0 auto; padding: 28px 16px 48px;
   color: var(--muted); font-size: 13px; text-align: center;
   border-top: 1px solid var(--line);
+}
+
+/* --- Мобильная адаптация --- */
+html, body { max-width: 100%; overflow-x: hidden; }
+img, table, #map { max-width: 100%; }
+.table-wrap { overflow-x: auto; }        /* широкая таблица точек скроллится */
+
+@media (max-width: 560px) {
+  body { font-size: 15px; }
+  .hero { padding: 22px 14px 6px; }
+  .emblem { width: 128px; height: 128px; }
+  .facts { gap: 6px; }
+  .fact { padding: 5px 11px; font-size: 13px; }
+  .about { font-size: 15.5px; padding: 14px 16px; }
+  #map { height: 300px; }
+  .card { padding: 14px 15px; }
+  .pk { flex-basis: 84px; }
+  .t-time { flex-basis: 76px; }
+  table.points { font-size: 13px; }
+  .nav { padding: 8px 10px; }
+  .nav a { padding: 7px 12px; }
 }

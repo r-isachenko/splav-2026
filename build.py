@@ -23,22 +23,45 @@ NOTES = BASE.parent                          # .../Сплав 2026
 # --- Редактируемые факты для hero (собраны из заметок, но разбросаны) ---
 CONFIG = {
     "brand": "Сплавные ребята",
-    "tagline": "Сплав по Пра · 14–16 августа 2026",
+    "tagline": "Сплав по Пре · 14–16 августа 2026",
     "dates": "14–16 августа 2026",
+    # Ключ Яндекс.Карт JS API (бесплатный, developer.tech.yandex.ru).
+    # Без ключа карта может не загрузиться — см. site/README.md.
+    "yandex_api_key": "",
     "facts": [
         ("Река", "Пра, Мещера"),
         ("Дистанция", "~43 км"),
         ("Формат", "3 дня / 2 ночи"),
         ("Экипаж", "6 человек"),
     ],
-    "intro": "Пятница вечер — воскресенье день. Спокойный ПВД по Мещере "
-             "с поправкой на завалы, разрешения нацпарка и уровень воды. "
-             "Главная идея: не добивать до Деулино в субботу, а встать "
-             "после Горок и в воскресенье спокойно доплыть.",
+    # Вводный раздел в начале страницы (до навигации по разделам).
+    "about": [
+        "Три дня на воде по Мещере: собираемся вечером пятницы, сплавляемся "
+        "до воскресенья. Шестеро, три байдарки, ~43 км спокойной Пры.",
+        "Главная идея — не гнать. В субботу не добиваем до Деулино, а встаём "
+        "после Горок; в воскресенье остаётся короткий доплыв, антистапель и "
+        "выезд домой.",
+        "Ниже — нитка маршрута с картой, тайминги по дням, чек-листы общего "
+        "снаряжения и личных вещей (галочки сохраняются прямо в твоём телефоне) "
+        "и меню на все приёмы пищи.",
+    ],
 }
 
 
 # ----------------------------- утилиты -----------------------------
+def load_yandex_key() -> str:
+    """Ключ Яндекс.Карт из ~/.yandex_maps_key (в репозиторий не коммитится).
+    Можно переопределить переменной окружения YANDEX_MAPS_KEY."""
+    import os
+    env = os.environ.get("YANDEX_MAPS_KEY", "").strip()
+    if env:
+        return env
+    key_file = Path.home() / ".yandex_maps_key"
+    if key_file.exists():
+        return key_file.read_text(encoding="utf-8").strip()
+    return CONFIG.get("yandex_api_key", "")
+
+
 def read_note(prefix: str) -> str:
     for p in NOTES.glob(f"{prefix} *.md"):
         return p.read_text(encoding="utf-8")
@@ -128,18 +151,19 @@ def paragraphs(lines):
 
 # --------------------------- маршрут (01) ---------------------------
 def marker_style(name: str):
+    # (категория, цвет для легенды, подпись, пресет метки Яндекс.Карт)
     n = name.lower()
     if "антистапель" in n:
-        return "finish", "#d64545", "Антистапель"
+        return "finish", "#d64545", "Антистапель", "islands#redDotIcon"
     if "стапель" in n or "кемпинг" in n:
-        return "start", "#2f9e44", "Стапель"
+        return "start", "#2f9e44", "Стапель", "islands#greenDotIcon"
     if "гидропост" in n:
-        return "gauge", "#1c7ed6", "Гидропост"
+        return "gauge", "#1c7ed6", "Гидропост", "islands#blueDotIcon"
     if "горки" in n:
-        return "village", "#e8590c", "Деревня"
+        return "village", "#e8590c", "Деревня", "islands#orangeDotIcon"
     if "лагерь" in n:
-        return "camp1", "#7048e8", "Проверенная ночёвка"
-    return "camp", "#868e96", "Стоянка"
+        return "camp1", "#7048e8", "Проверенная ночёвка", "islands#violetDotIcon"
+    return "camp", "#868e96", "Стоянка", "islands#grayDotIcon"
 
 
 def parse_route(text):
@@ -157,10 +181,11 @@ def parse_route(text):
         m = re.match(r"(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)", coord)
         if not m:
             continue
-        cat, color, label = marker_style(cells[0])
+        cat, color, label, preset = marker_style(cells[0])
         points.append({
             "name": cells[0], "lat": float(m.group(1)), "lon": float(m.group(2)),
-            "purpose": cells[2], "cat": cat, "color": color, "label": label,
+            "purpose": cells[2], "cat": cat, "color": color,
+            "label": label, "preset": preset,
         })
 
     # краткий план по дням
@@ -285,6 +310,7 @@ def render(route, gear, personal, menu):
         f'<span class="fact-v">{html.escape(v)}</span></div>'
         for k, v in F["facts"]
     )
+    about = "".join(f"<p>{inline(p)}</p>" for p in F["about"])
 
     # --- Маршрут ---
     plan_cards = []
@@ -378,7 +404,8 @@ def render(route, gear, personal, menu):
         brand=html.escape(F["brand"]),
         tagline=html.escape(F["tagline"]),
         dates=html.escape(F["dates"]),
-        intro=html.escape(F["intro"]),
+        yandex_key=F["yandex_api_key"],
+        about=about,
         facts=facts,
         plan_cards="".join(plan_cards),
         legend="".join(legend),
@@ -406,8 +433,6 @@ TEMPLATE = """<!DOCTYPE html>
 <title>{brand} — {dates}</title>
 <meta name="description" content="{tagline}">
 <link rel="icon" href="assets/emblem.png">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
@@ -416,8 +441,11 @@ TEMPLATE = """<!DOCTYPE html>
   <h1>{brand}</h1>
   <p class="tagline">{tagline}</p>
   <div class="facts">{facts}</div>
-  <p class="hero-intro">{intro}</p>
 </header>
+
+<section class="intro-block" id="about">
+  <div class="about">{about}</div>
+</section>
 
 <nav class="nav" id="nav">
   <a href="#marshrut">Маршрут</a>
@@ -444,9 +472,6 @@ TEMPLATE = """<!DOCTYPE html>
         <tbody>{pts_rows}</tbody>
       </table>
     </details>
-
-    <h3 class="sub">Лоции и источники</h3>
-    <ul class="links">{links}</ul>
   </section>
 
   <section id="timing">
@@ -479,6 +504,11 @@ TEMPLATE = """<!DOCTYPE html>
     <h3 class="sub">Рецепты</h3>
     <div class="recipes">{recipe_cards}</div>
   </section>
+
+  <section id="links">
+    <h2>Лоции и источники</h2>
+    <ul class="links">{links}</ul>
+  </section>
 </main>
 
 <footer>
@@ -486,8 +516,7 @@ TEMPLATE = """<!DOCTYPE html>
 </footer>
 
 <script>window.ROUTE_POINTS = {points_json};</script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://api-maps.yandex.ru/2.1/?apikey={yandex_key}&lang=ru_RU"></script>
 <script src="assets/route.js"></script>
 <script src="assets/checklist.js"></script>
 </body>
@@ -496,6 +525,7 @@ TEMPLATE = """<!DOCTYPE html>
 
 
 def main():
+    CONFIG["yandex_api_key"] = load_yandex_key()
     route = parse_route(read_note("01"))
     gear = parse_gear(read_note("03"))
     personal = parse_gear(read_note("04"))

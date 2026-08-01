@@ -1,31 +1,50 @@
-// Карта опорных точек маршрута (Leaflet + OpenStreetMap).
+// Карта опорных точек маршрута на Яндекс.Картах (JS API 2.1).
 (function () {
   var pts = window.ROUTE_POINTS || [];
   var el = document.getElementById("map");
-  if (!el || !window.L || !pts.length) return;
+  if (!el || !pts.length) return;
 
-  var map = L.map(el, { scrollWheelZoom: false });
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 18,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map);
+  function fallback() {
+    // Если карта не загрузилась (нет ключа / нет сети) — показать ссылку.
+    el.classList.add("map-fallback");
+    el.innerHTML =
+      '<p>Карта не загрузилась. Открой точки маршрута в ' +
+      '<a href="https://yandex.ru/maps/?pt=' + pts[0].lon + "," + pts[0].lat +
+      '&z=11" target="_blank" rel="noopener">Яндекс.Картах</a>.</p>';
+  }
 
-  var bounds = [];
-  pts.forEach(function (p) {
-    bounds.push([p.lat, p.lon]);
-    L.circleMarker([p.lat, p.lon], {
-      radius: 7, color: "#00000033", weight: 1,
-      fillColor: p.color, fillOpacity: 0.95
-    }).addTo(map).bindPopup(
-      '<strong>' + p.name + '</strong><br>' +
-      (p.purpose ? p.purpose + '<br>' : '') +
-      '<span style="color:#888">' + p.lat + ', ' + p.lon + '</span><br>' +
-      '<a href="https://yandex.ru/maps/?pt=' + p.lon + ',' + p.lat +
-      '&z=15&l=sat" target="_blank" rel="noopener">Открыть в Яндекс.Картах</a>'
-    );
+  if (!window.ymaps || !ymaps.ready) { fallback(); return; }
+
+  ymaps.ready(function () {
+    try {
+      var map = new ymaps.Map(el, {
+        center: [pts[0].lat, pts[0].lon],
+        zoom: 11,
+        controls: ["zoomControl", "fullscreenControl", "typeSelector"]
+      }, { suppressMapOpenBlock: true });
+
+      map.behaviors.disable("scrollZoom"); // не перехватываем скролл страницы
+
+      var coords = [];
+      pts.forEach(function (p) {
+        coords.push([p.lat, p.lon]);
+        map.geoObjects.add(new ymaps.Placemark([p.lat, p.lon], {
+          balloonContentHeader: p.name,
+          balloonContentBody:
+            (p.purpose ? p.purpose + "<br>" : "") +
+            '<span style="color:#888">' + p.lat + ", " + p.lon + "</span>",
+          balloonContentFooter:
+            '<a href="https://yandex.ru/maps/?pt=' + p.lon + "," + p.lat +
+            '&z=15&l=sat" target="_blank" rel="noopener">Открыть точку</a>',
+          hintContent: p.name
+        }, { preset: p.preset }));
+      });
+
+      map.setBounds(ymaps.util.bounds.fromPoints(coords), {
+        checkZoomRange: true, zoomMargin: 30
+      });
+    } catch (e) {
+      fallback();
+    }
   });
-
-  map.fitBounds(bounds, { padding: [30, 30] });
-  // клик по карте включает колесо, чтобы не мешать скроллу страницы
-  map.on("click", function () { map.scrollWheelZoom.enable(); });
 })();
