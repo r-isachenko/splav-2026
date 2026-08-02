@@ -63,6 +63,13 @@ a { color: var(--accent); }
 
 /* Intro / О сплаве */
 .intro-block { max-width: var(--maxw); margin: 18px auto 0; padding: 0 16px; }
+.banner {
+  background: color-mix(in srgb, var(--accent-2) 16%, var(--card));
+  border: 1.5px solid var(--accent-2); border-radius: var(--radius);
+  padding: 14px 18px; margin-bottom: 14px;
+  font-weight: 700; font-size: 16.5px; text-align: center;
+  box-shadow: var(--shadow);
+}
 .about {
   background: var(--card); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 8px 20px;

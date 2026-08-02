@@ -34,6 +34,9 @@ CONFIG = {
         ("Формат", "3 дня / 2 ночи"),
         ("Экипаж", "7 человек"),
     ],
+    # Заметный баннер в самом начале (важное, что нельзя пропустить).
+    "notice": "📅 Пятница 14 августа — рабочий день. Не забудь заранее "
+              "взять выходной: выезжаем в 09:00, ждать никого не сможем!",
     # Вводный раздел в начале страницы (до навигации по разделам).
     "about": [
         ("🛶", "Три дня на воде по Мещере: собираемся вечером пятницы, "
@@ -443,6 +446,7 @@ def render(route, gear, personal, menu):
         tagline=html.escape(F["tagline"]),
         dates=html.escape(F["dates"]),
         yandex_key=F["yandex_api_key"],
+        notice=html.escape(F["notice"]),
         about=about,
         facts=facts,
         plan_cards="".join(plan_cards),
@@ -481,6 +485,7 @@ TEMPLATE = """<!DOCTYPE html>
 </header>
 
 <section class="intro-block" id="about">
+  <div class="banner">{notice}</div>
   <div class="about">{about}</div>
 </section>
 
