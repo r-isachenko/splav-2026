@@ -37,6 +37,9 @@ CONFIG = {
     # Заметный баннер в самом начале (важное, что нельзя пропустить).
     "notice": "📅 Пятница 14 августа — рабочий день. Не забудь заранее "
               "взять выходной: выезжаем в 09:00, ждать никого не сможем!",
+    # Плашка в разделе маршрута (временные оговорки по нитке).
+    "route_note": "📍 Конкретная точка начала сплава уточняется — финальную "
+                  "поляну стапеля и координаты скинем в чат перед выездом.",
     # Вводный раздел в начале страницы (до навигации по разделам).
     "about": [
         ("🛶", "Три дня на воде по Мещере: собираемся вечером пятницы, "
@@ -447,6 +450,7 @@ def render(route, gear, personal, menu):
         dates=html.escape(F["dates"]),
         yandex_key=F["yandex_api_key"],
         notice=html.escape(F["notice"]),
+        route_note=html.escape(F["route_note"]),
         about=about,
         facts=facts,
         plan_cards="".join(plan_cards),
@@ -501,6 +505,7 @@ TEMPLATE = """<!DOCTYPE html>
   <section id="marshrut">
     <h2><span class="h2-emoji">🗺️</span>Нитка маршрута</h2>
     <p class="lead">Заводская Слобода → Кордон 273 → Горки → Лесохим → Деулино</p>
+    <div class="callout">{route_note}</div>
     <div class="grid">{plan_cards}</div>
 
     <h3 class="sub">Карта опорных точек</h3>
