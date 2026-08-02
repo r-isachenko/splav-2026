@@ -495,9 +495,9 @@ TEMPLATE = """<!DOCTYPE html>
 </header>
 
 <section class="intro-block" id="about">
-  <div class="banner">{notice}</div>
   <p class="intro-kicker">Почему это главный тур лета</p>
   <div class="about">{about}</div>
+  <div class="banner">{notice}</div>
 </section>
 
 <nav class="nav" id="nav">

@@ -72,7 +72,7 @@ a { color: var(--accent); }
 .banner {
   background: color-mix(in srgb, var(--accent-2) 16%, var(--card));
   border: 1.5px solid var(--accent-2); border-radius: var(--radius);
-  padding: 14px 18px; margin-bottom: 14px;
+  padding: 14px 18px; margin-top: 16px;
   font-weight: 700; font-size: 16.5px; text-align: center;
   box-shadow: var(--shadow);
 }
