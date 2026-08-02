@@ -42,8 +42,9 @@ a { color: var(--accent); }
   text-align: center;
 }
 .emblem {
-  width: 168px; height: 168px; border-radius: 50%;
-  object-fit: cover; box-shadow: var(--shadow);
+  width: min(72vw, 330px); aspect-ratio: 1; height: auto;
+  border-radius: 50%; object-fit: cover;
+  box-shadow: 0 4px 14px rgba(40,35,25,.18), 0 14px 44px rgba(40,35,25,.14);
 }
 .hero h1 {
   font-size: clamp(28px, 7vw, 40px);
@@ -244,7 +245,6 @@ img, table, #map { max-width: 100%; }
 @media (max-width: 560px) {
   body { font-size: 15px; }
   .hero { padding: 22px 14px 6px; }
-  .emblem { width: 128px; height: 128px; }
   .facts { gap: 6px; }
   .fact { padding: 5px 11px; font-size: 13px; }
   .about { font-size: 15.5px; padding: 14px 16px; }
