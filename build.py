@@ -82,7 +82,10 @@ def read_note(prefix: str) -> str:
 
 
 def inline(text: str) -> str:
-    """Лёгкий инлайн-markdown: escape → code → ссылки → bold."""
+    """Лёгкий инлайн-markdown: %%комментарии%% → escape → code → ссылки → bold.
+    %%…%% — Obsidian-комментарии: остаются в заметке, но не публикуются на сайте."""
+    text = re.sub(r"%%.*?%%", "", text)
+    text = re.sub(r"[ \t]{2,}", " ", text).strip()
     text = html.escape(text, quote=False)
     text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
     text = re.sub(
